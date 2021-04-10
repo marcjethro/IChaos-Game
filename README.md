@@ -22,8 +22,8 @@ Download the zip file in this repo and extract
 Or If you have [git](https://github.com/git-guides/install-git) installed, then clone this repo:
 
 ```bash
-git clone https://github.com/marcjethro/Nim-Game.git
-cd Nim-Game
+git clone https://github.com/marcjethro/IChaos-Game.git
+cd IChaos-Game
 ```
 
 ## Usage
