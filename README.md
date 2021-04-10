@@ -11,7 +11,7 @@ In mathematics, the term chaos game originally referred to a method of creating 
 
 Make sure you have [Python 3](https://www.python.org/downloads/) installed,
 
-Install [pillow](https://pypi.org/project/Pillow/) and [matplotlib](https://pypi.org/project/matplotlib/)
+If you haven't already, install [pillow](https://pypi.org/project/Pillow/) and [matplotlib](https://pypi.org/project/matplotlib/)
 ```bash
 python -m pip install pip
 python -m pip install pillow
