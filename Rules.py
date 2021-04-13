@@ -5,9 +5,10 @@ from IChaosGame import Shape
 
 # TEMPLATE FOR MAKING A NEW RULE
 # def sample_rule(shape: Shape = None,
-#                              last_point: tuple = None,
-#                              last_vertex: int = None,
-#                              getinfo=False):
+#                 last_point: tuple = None,
+#                 last_vertex: int = None,
+#                 distance = 0.5,
+#                 getinfo=False):
 #     if getinfo == 'name':
 #         return "name of the rule"
 #     if getinfo == 'description':
@@ -26,8 +27,10 @@ from IChaosGame import Shape
 #     lp_y = last_point[1]
 #
 #     # Do something to get new point
-#     new_x = (cv_x + lp_x) / 2
-#     new_y = (cv_y + lp_y) / 2
+#     new_x = abs(lp_x - cv_x) * distance + lp_x if lp_x < cv_x else \
+#         lp_x - abs(lp_x - cv_x) * distance
+#     new_y = abs(lp_y - cv_y) * distance + lp_y if lp_y < cv_y else \
+#         lp_y - abs(lp_y - cv_y) * distance
 #     new_point = (new_x, new_y)
 #
 #     return new_point, chosen_vertex
@@ -36,11 +39,12 @@ from IChaosGame import Shape
 def classic_chaos_game_rules(shape: Shape = None,
                              last_point: tuple = None,
                              last_vertex: int = None,
+                             distance = 0.5,
                              getinfo=False):
     if getinfo == 'name':
         return "Classic"
     if getinfo == 'description':
-        return 'From a point, pick a random vertex and move towards it halfway, ' \
+        return 'From a point, pick a random vertex and move towards it by a distance, ' \
                'this will become the new point, and then repeat'
 
     # Randomly choose a vertex
@@ -55,8 +59,11 @@ def classic_chaos_game_rules(shape: Shape = None,
     lp_x = last_point[0]
     lp_y = last_point[1]
 
-    new_x = (cv_x + lp_x) / 2
-    new_y = (cv_y + lp_y) / 2
+    # Do something to get new point
+    new_x = abs(lp_x - cv_x) * distance + lp_x if lp_x < cv_x else \
+        lp_x - abs(lp_x - cv_x) * distance
+    new_y = abs(lp_y - cv_y) * distance + lp_y if lp_y < cv_y else \
+        lp_y - abs(lp_y - cv_y) * distance
     new_point = (new_x, new_y)
 
     return new_point, chosen_vertex
@@ -65,6 +72,7 @@ def classic_chaos_game_rules(shape: Shape = None,
 def no_same_vertex_rules(shape: Shape = None,
                          last_point: tuple = None,
                          last_vertex: int = None,
+                         distance = 0.5,
                          getinfo=False):
     if getinfo == 'name':
         return "No Same Vertex"
@@ -85,8 +93,11 @@ def no_same_vertex_rules(shape: Shape = None,
     lp_x = last_point[0]
     lp_y = last_point[1]
 
-    new_x = (cv_x + lp_x) / 2
-    new_y = (cv_y + lp_y) / 2
+    # Do something to get new point
+    new_x = abs(lp_x - cv_x) * distance + lp_x if lp_x < cv_x else \
+        lp_x - abs(lp_x - cv_x) * distance
+    new_y = abs(lp_y - cv_y) * distance + lp_y if lp_y < cv_y else \
+        lp_y - abs(lp_y - cv_y) * distance
     new_point = (new_x, new_y)
 
     return new_point, chosen_vertex
@@ -95,6 +106,7 @@ def no_same_vertex_rules(shape: Shape = None,
 def no_clockwise_rule(shape: Shape = None,
                       last_point: tuple = None,
                       last_vertex: int = None,
+                      distance = 0.5,
                       getinfo=False):
     if getinfo == 'name':
         return "No Clockwise"
@@ -118,17 +130,20 @@ def no_clockwise_rule(shape: Shape = None,
     lp_y = last_point[1]
 
     # Do something to get new point
-    new_x = (cv_x + lp_x) / 2
-    new_y = (cv_y + lp_y) / 2
+    new_x = abs(lp_x - cv_x) * distance + lp_x if lp_x < cv_x else \
+        lp_x - abs(lp_x - cv_x) * distance
+    new_y = abs(lp_y - cv_y) * distance + lp_y if lp_y < cv_y else \
+        lp_y - abs(lp_y - cv_y) * distance
     new_point = (new_x, new_y)
 
     return new_point, chosen_vertex
 
 
 def no_counter_clockwise_rule(shape: Shape = None,
-                      last_point: tuple = None,
-                      last_vertex: int = None,
-                      getinfo=False):
+                              last_point: tuple = None,
+                              last_vertex: int = None,
+                              distance = 0.5,
+                              getinfo=False):
     if getinfo == 'name':
         return "No Counter Clockwise"
     if getinfo == 'description':
@@ -151,8 +166,10 @@ def no_counter_clockwise_rule(shape: Shape = None,
     lp_y = last_point[1]
 
     # Do something to get new point
-    new_x = (cv_x + lp_x) / 2
-    new_y = (cv_y + lp_y) / 2
+    new_x = abs(lp_x - cv_x) * distance + lp_x if lp_x < cv_x else \
+        lp_x - abs(lp_x - cv_x) * distance
+    new_y = abs(lp_y - cv_y) * distance + lp_y if lp_y < cv_y else \
+        lp_y - abs(lp_y - cv_y) * distance
     new_point = (new_x, new_y)
 
     return new_point, chosen_vertex
@@ -161,6 +178,7 @@ def no_counter_clockwise_rule(shape: Shape = None,
 def no_opposite(shape: Shape = None,
                 last_point: tuple = None,
                 last_vertex: int = None,
+                distance = 0.5,
                 getinfo=False):
     if getinfo == 'name':
         return "No Opposite"
@@ -184,8 +202,10 @@ def no_opposite(shape: Shape = None,
     lp_y = last_point[1]
 
     # Do something to get new point
-    new_x = (cv_x + lp_x) / 2
-    new_y = (cv_y + lp_y) / 2
+    new_x = abs(lp_x - cv_x) * distance + lp_x if lp_x < cv_x else \
+        lp_x - abs(lp_x - cv_x) * distance
+    new_y = abs(lp_y - cv_y) * distance + lp_y if lp_y < cv_y else \
+        lp_y - abs(lp_y - cv_y) * distance
     new_point = (new_x, new_y)
 
     return new_point, chosen_vertex
@@ -194,6 +214,7 @@ def no_opposite(shape: Shape = None,
 def no_neighbor_if_chosen_twice(shape: Shape = None,
                                 last_point: tuple = None,
                                 last_vertex: int = None,
+                                distance = 0.5,
                                 getinfo=False):
     if getinfo == 'name':
         return "No Neighbor"
@@ -221,8 +242,10 @@ def no_neighbor_if_chosen_twice(shape: Shape = None,
     lp_y = last_point[1]
 
     # Do something to get new point
-    new_x = (cv_x + lp_x) / 2
-    new_y = (cv_y + lp_y) / 2
+    new_x = abs(lp_x - cv_x) * distance + lp_x if lp_x < cv_x else \
+        lp_x - abs(lp_x - cv_x) * distance
+    new_y = abs(lp_y - cv_y) * distance + lp_y if lp_y < cv_y else \
+        lp_y - abs(lp_y - cv_y) * distance
     new_point = (new_x, new_y)
 
     if chosen_vertex == last_vertex or (isinstance(last_vertex, list) and last_vertex[0] == chosen_vertex):

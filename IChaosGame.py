@@ -60,6 +60,10 @@ class Controller:
         rule_no = self.main_view.controls_view.rules_name_list.index(rule.get())
         self.change_rule(rule_no)
 
+    def distance_trace_callback(self, *args, **kwargs):
+        distance = self.main_view.controls_view.distance.get()
+        self.simulation.change_jump_distance(distance)
+
     def change_rule(self, rule_no: int):
         self.simulation.change_rule(rule_no)
 
@@ -185,11 +189,12 @@ class InitPoint:
 
 
 class ChaosPoints:
-    def __init__(self, init_point: InitPoint, shape: Shape, rule_method):
+    def __init__(self, init_point: InitPoint, shape: Shape, rule_method, distance):
         self.init_point = init_point
         self.latest_point_xy_cords = (init_point.get_point_cords()[0][0],
                                       init_point.get_point_cords()[1][0])
         self.shape = shape
+        self.distance = distance
         self.latest_chosen_vertex = None
         self.points = Points()
         self.rule = rule_method
@@ -198,7 +203,10 @@ class ChaosPoints:
         return self.points.get_point_cords()
 
     def generate_point(self):
-        new_point_xy_cords, chosen_vertex = self.rule(self.shape, self.latest_point_xy_cords, self.latest_chosen_vertex)
+        new_point_xy_cords, chosen_vertex = self.rule(self.shape,
+                                                      self.latest_point_xy_cords,
+                                                      self.latest_chosen_vertex,
+                                                      self.distance)
         self.latest_point_xy_cords = new_point_xy_cords
         self.latest_chosen_vertex = chosen_vertex
         self.points.add_point(*new_point_xy_cords)
@@ -211,8 +219,6 @@ class ChaosPoints:
 
 
 class Simulation:
-    default_speed = 0
-
     def __init__(self):
         self.list_of_rules = [el[1] for el in getmembers(Rules, isfunction)]
         self.speed_equivalent = [1, 1, 2, 8, 64]
@@ -221,14 +227,21 @@ class Simulation:
         self.speed = self.speed_equivalent[self.default_speed]
         self.shape = Shape()
         self.init_point = InitPoint()
+        self.distance = 0.5
         self.chaos_points = ChaosPoints(init_point=self.init_point,
                                         shape=self.shape,
-                                        rule_method=self.list_of_rules[0])
+                                        rule_method=self.list_of_rules[0],
+                                        distance=self.distance)
         self.start_flag = False
 
     def change_speed(self, speed: int):
         self.speed_no = speed
         self.speed = self.speed_equivalent[speed]
+
+    def change_jump_distance(self, distance):
+        self.distance = distance
+        self.chaos_points.distance = distance
+        self.chaos_points.reset()
 
     def add_shape_point(self):
         self.shape.add_shape_point()
@@ -338,7 +351,7 @@ class ControlsView(tk.Frame):
         self.run_button = tk.Button(master=self,
                                     textvariable=self.run_button_text_var,
                                     command=self.controller.toggle_run)
-        self.run_button.place(anchor="nw", rely=0.05, relx=0.25, relwidth=0.5, relheight=0.13)
+        self.run_button.place(anchor="nw", rely=0.05, relx=0.25, relwidth=0.5, relheight=0.10)
 
         self.rule = tk.StringVar()
         rules_func_list = [el[1] for el in getmembers(Rules, isfunction)]
@@ -347,12 +360,24 @@ class ControlsView(tk.Frame):
         self.rule.trace("w", callback=self.controller.rule_trace_callback)
 
         self.rules_menu = tk.OptionMenu(self, self.rule, *self.rules_name_list)
-        self.rules_menu.place(anchor="ne", rely=0.25, relx=0.75, relwidth=0.4, relheight=0.13)
+        self.rules_menu.place(anchor="ne", rely=0.20, relx=0.75, relwidth=0.4, relheight=0.10)
 
         self.qmark_image = Image.open('qmark.png').resize((20, 20), Image.ANTIALIAS)
         self.qmark_image = ImageTk.PhotoImage(self.qmark_image)
         self.qmark_button = tk.Button(self, image=self.qmark_image, command=controller.show_rules_help)
-        self.qmark_button.place(anchor="nw", rely=0.25, relx=0.25, relwidth=0.075, relheight=0.13)
+        self.qmark_button.place(anchor="nw", rely=0.20, relx=0.25, relwidth=0.075, relheight=0.10)
+
+        self.distance = tk.DoubleVar()
+        self.distance.set(0.5)
+        self.distance_scale = tk.Scale(self,
+                                       from_=0,
+                                       to=2,
+                                       orient="horizontal",
+                                       digits=3,
+                                       resolution=0.01,
+                                       variable=self.distance)
+        self.distance_scale.place(anchor="ne", rely=0.35, relx=0.75, relwidth=0.5, relheight=0.10)
+        self.distance.trace("w", callback=self.controller.distance_trace_callback)
 
         self.speed_label_text_var = tk.StringVar()
         self.speed_label_text_var.set(self.simulation.speed_no + 1)
@@ -366,9 +391,9 @@ class ControlsView(tk.Frame):
                                        text="SLOWER",
                                        command=self.controller.decrease_speed,
                                        state="disabled")
-        self.speed_label.place(anchor="n", rely=0.45, relx=0.5, relheight=0.13)
-        self.slower_button.place(anchor="nw", rely=0.45, relx=0.25, relwidth=0.2, relheight=0.13)
-        self.faster_button.place(anchor="ne", rely=0.45, relx=0.75, relwidth=0.2, relheight=0.13)
+        self.speed_label.place(anchor="n", rely=0.50, relx=0.5, relheight=0.10)
+        self.slower_button.place(anchor="nw", rely=0.50, relx=0.25, relwidth=0.2, relheight=0.10)
+        self.faster_button.place(anchor="ne", rely=0.50, relx=0.75, relwidth=0.2, relheight=0.10)
 
         self.shape_label_text_var = tk.StringVar()
         self.shape_label_text_var.set(self.simulation.shape.number_of_points)
@@ -382,15 +407,15 @@ class ControlsView(tk.Frame):
                                      text="LESS",
                                      command=self.controller.less_shape_point,
                                      state="disabled")
-        self.shape_label.place(anchor="n", rely=0.65, relx=0.5, relheight=0.13)
-        self.less_button.place(anchor="nw", rely=0.65, relx=0.25, relwidth=0.2, relheight=0.13)
-        self.add_button.place(anchor="ne", rely=0.65, relx=0.75, relwidth=0.2, relheight=0.13)
+        self.shape_label.place(anchor="n", rely=0.65, relx=0.5, relheight=0.10)
+        self.less_button.place(anchor="nw", rely=0.65, relx=0.25, relwidth=0.2, relheight=0.10)
+        self.add_button.place(anchor="ne", rely=0.65, relx=0.75, relwidth=0.2, relheight=0.10)
 
         self.reset_button = tk.Button(master=self,
                                       text="RESET",
                                       command=self.controller.reset)
 
-        self.reset_button.place(anchor="ne", rely=0.85, relx=0.75, relwidth=0.5, relheight=0.13)
+        self.reset_button.place(anchor="ne", rely=0.80, relx=0.75, relwidth=0.5, relheight=0.10)
 
 
 class RulesHelp(tk.Toplevel):
