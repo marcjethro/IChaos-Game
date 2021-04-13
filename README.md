@@ -34,7 +34,7 @@ python IChaosGame.py
 ```
 Wait for a few seconds and a GUI should pop up.
 
-![Gui Picture](docpic_gui.png)
+![Gui Picture](gui_pic.png)
 
 ## Contributing
 Any and all feedback is welcome.
