@@ -52,7 +52,6 @@ class Controller:
         self.artists = (self.shape_outline[0], self.shape_points, self.scat)
         return self.artists
 
-
     def init_animate_figure(self):
         self.ax.clear()
         shape_cords = self.simulation.shape.get_point_cords()
