@@ -10,22 +10,58 @@ import Rules as Rules
 
 class Controller:
     def __init__(self):
-        self.canvas = None
         self.simulation = Simulation()
         self.main_view = MainView(simulation=self.simulation, controller=self)
+        self.animation_reset = False
         self.figure, self.ax = self.main_view.initialize_figure()
-        self.anime = FuncAnimation(self.figure, self.animate_figure, interval=500)
+        self.anime = FuncAnimation(self.figure, self.animate_figure,
+                                   init_func=self.init_animate_figure, blit=True, interval=500)
         self.main_view.mainloop()
 
     def animate_figure(self, event):
+        chaos_point_cords = self.simulation.chaos_points.get_point_cords()
+        shape_cords = self.simulation.shape.get_point_cords()
+        if self.animation_reset >= 100:
+            self.shape_outline = self.ax.plot(*shape_cords, alpha=0.2)
+            self.shape_points = self.ax.scatter(*shape_cords, alpha=0.5)
+            self.scat = self.ax.scatter(*chaos_point_cords, s=(500/((len(chaos_point_cords[0]) // 3) + 1)))
+            self.animation_reset = 0
+
+        delta_chaos_point_cords = []
         for i in range(self.simulation.speed):
             self.simulation.iterate()
+            try:
+                new_point = (chaos_point_cords[0][-1],
+                             chaos_point_cords[1][-1])
+            except IndexError:
+                new_point = False
+            if new_point:
+                delta_chaos_point_cords.append(new_point)
+        if delta_chaos_point_cords:
+            updated_list_of_cords = list(self.scat.get_offsets()) + delta_chaos_point_cords
+            self.scat.set_offsets(updated_list_of_cords)
+            self.scat.set_sizes([(500/((len(updated_list_of_cords) // 3) + 1))
+                                 for _ in range(len(updated_list_of_cords))])
+
+        try:
+            self.ax.set_xlim(min(chaos_point_cords[0] + shape_cords[0]) - 1, max(chaos_point_cords[0] + shape_cords[0]) + 1)
+            self.ax.set_ylim(min(chaos_point_cords[1] + shape_cords[1]) - 1, max(chaos_point_cords[1] + shape_cords[1]) + 1)
+        except ValueError:
+            pass
+
+        self.artists = (self.shape_outline[0], self.shape_points, self.scat)
+        return self.artists
+
+
+    def init_animate_figure(self):
         self.ax.clear()
         shape_cords = self.simulation.shape.get_point_cords()
-        self.ax.plot(*shape_cords, alpha=0.2)
-        self.ax.scatter(*shape_cords)
+        self.shape_outline = self.ax.plot(*shape_cords, alpha=0.2)
+        self.shape_points = self.ax.scatter(*shape_cords, alpha=0.5)
         chaos_point_cords = self.simulation.chaos_points.get_point_cords()
-        self.ax.scatter(*chaos_point_cords, s=500/((len(chaos_point_cords[0]) // 3) + 1))
+        self.scat = self.ax.scatter(*chaos_point_cords, s=(500/((len(chaos_point_cords[0]) // 3) + 1)))
+        self.artists = (self.shape_outline[0], self.shape_points, self.scat)
+        return self.artists
 
     def change_speed(self, speed: int):
         speed_equivalent = [500, 250, 100, 10, 1]
@@ -46,10 +82,12 @@ class Controller:
     def add_shape_point(self):
         self.simulation.add_shape_point()
         self.update_shape()
+        self.animation_reset = 100
 
     def less_shape_point(self):
         self.simulation.less_shape_point()
         self.update_shape()
+        self.animation_reset = 100
 
     def update_shape(self):
         self.main_view.update_shape_label_text()
@@ -59,10 +97,12 @@ class Controller:
         rule = self.main_view.controls_view.rule
         rule_no = self.main_view.controls_view.rules_name_list.index(rule.get())
         self.change_rule(rule_no)
+        self.animation_reset = 100
 
     def distance_trace_callback(self, *args, **kwargs):
         distance = self.main_view.controls_view.distance.get()
         self.simulation.change_jump_distance(distance)
+        self.animation_reset = 100
 
     def change_rule(self, rule_no: int):
         self.simulation.change_rule(rule_no)
@@ -80,6 +120,7 @@ class Controller:
         self.update_speed()
         self.update_shape()
         self.main_view.update_run_button_text()
+        self.animation_reset = 100
 
 
 class Points:
@@ -274,7 +315,7 @@ class MainView(tk.Tk):
         self.controller = controller
 
         self.title('Interactive Live Chaos Game Sim')
-        self.configure(bg='#5ef7ff')
+        self.configure(bg='#E8E8E8')
         self.geometry("700x700")
 
         self.graph_view = GraphView(self.simulation, self.controller)
@@ -328,14 +369,17 @@ class GraphView(tk.Frame):
         tk.Frame.__init__(self, *args, **kwargs)
         self.simulation = simulation
         self.controller = controller
-        self.configure(bg='#5ef7ff')
+        self.configure(bg='#E8E8E8')
 
     def initialize_figure(self):
         figure = plt.figure()
-        ax1 = figure.add_subplot(1, 1, 1)
+        ax1 = figure.add_axes([0, 0, 1, 1])
+        ax1.axes.xaxis.set_visible(False)
+        ax1.axes.yaxis.set_visible(False)
+        ax1.set_frame_on(False)
         canvas = FigureCanvasTkAgg(figure, master=self)
-        graph_canvas = canvas.get_tk_widget()
-        graph_canvas.pack()
+        self.graph_canvas = canvas.get_tk_widget()
+        self.graph_canvas.pack()
         return figure, ax1
 
 
@@ -344,7 +388,7 @@ class ControlsView(tk.Frame):
         tk.Frame.__init__(self, *args, **kwargs)
         self.simulation = simulation
         self.controller = controller
-        self.configure(bg='#5ef7ff')
+        self.configure(bg='#E8E8E8')
 
         self.run_button_text_var = tk.StringVar()
         self.run_button_text_var.set("RUN")
@@ -383,7 +427,7 @@ class ControlsView(tk.Frame):
         self.speed_label_text_var.set(self.simulation.speed_no + 1)
         self.speed_label = tk.Label(master=self,
                                     textvariable=self.speed_label_text_var,
-                                    bg='#5ef7ff')
+                                    bg='#E8E8E8')
         self.faster_button = tk.Button(master=self,
                                        text="FASTER",
                                        command=self.controller.increase_speed)
@@ -399,7 +443,7 @@ class ControlsView(tk.Frame):
         self.shape_label_text_var.set(self.simulation.shape.number_of_points)
         self.shape_label = tk.Label(master=self,
                                     textvariable=self.shape_label_text_var,
-                                    bg='#5ef7ff')
+                                    bg='#E8E8E8')
         self.add_button = tk.Button(master=self,
                                     text="ADD",
                                     command=self.controller.add_shape_point)
@@ -426,9 +470,9 @@ class RulesHelp(tk.Toplevel):
         self.resizable(False, False)
         self.geometry('510x300')
 
-        self.canvas = tk.Canvas(master=self, bg='#5ef7ff')
+        self.canvas = tk.Canvas(master=self, bg='#E8E8E8')
 
-        self.frame = tk.Frame(master=self.canvas, bg='#5ef7ff')
+        self.frame = tk.Frame(master=self.canvas, bg='#E8E8E8')
 
         self.scrollbar = tk.Scrollbar(master=self, orient='vertical', command=self.canvas.yview)
         self.canvas.configure(yscrollcommand=self.scrollbar.set)
@@ -448,7 +492,7 @@ class RulesHelp(tk.Toplevel):
                          justify='left',
                          anchor='w',
                          wraplength=480,
-                         bg='#5ef7ff',
+                         bg='#E8E8E8',
                          font='Helvetica 12 bold',
                          text='        In mathematics, the term chaos game originally referred '
                               "to a method of creating a fractal, "
@@ -466,7 +510,7 @@ class RulesHelp(tk.Toplevel):
                                   justify='left',
                                   anchor='w',
                                   wraplength=480,
-                                  bg='#5ef7ff',
+                                  bg='#E8E8E8',
                                   font='Helvetica 12 bold',
                                   text=f"{rule(getinfo='name')} \n     {rule(getinfo='description')}")
             rule_label.pack(fill='both', padx=5, pady=10)
