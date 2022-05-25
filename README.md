@@ -1,6 +1,6 @@
 # IChaos-Game
 
-A python implementation of a fractal-creating method called [Chaos Game](https://en.wikipedia.org/wiki/Chaos_game). 
+A python implementation of a fractal-creation method called [Chaos Game](https://en.wikipedia.org/wiki/Chaos_game). 
 It simulates the algorithm live using matplotlib. Interactive controls are provided by a GUI written in tkinter.
 
 #### About Chaos Game
