@@ -17,7 +17,7 @@ python -m pip install pip
 python -m pip install pillow
 python -m pip install matplotlib
 ```
-Download the zip file in this repo and extract
+Download this repo as a zip file and extract
 
 Or If you have [git](https://github.com/git-guides/install-git) installed, then clone this repo:
 
